@@ -9,9 +9,13 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
@@ -19,13 +23,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cn.xdf.screenrecord.record.ScreenRecordManager
-import cn.xdf.screenrecord.record.SpliceScreenRecorder
-import cn.xdf.screenrecord.record.SpliceScreenRecordService
 import cn.xdf.screenrecord.ui.theme.ScreenRecordTheme
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
@@ -41,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ButtonList(Modifier.fillMaxSize())
+                    ContentContainer()
                 }
             }
         }
@@ -50,6 +62,34 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         manager.onStart(this)
+    }
+
+    @Composable
+    fun ContentContainer() {
+        Column(Modifier.fillMaxSize()) {
+            ButtonList(Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(20.dp))
+            ShowTime()
+        }
+    }
+
+    @Composable
+    fun ShowTime() {
+        Box(modifier = Modifier.fillMaxSize()) {
+            val currentTime by remember(System.currentTimeMillis()) {
+                derivedStateOf {
+                    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+                     dateFormat.format(Date(System.currentTimeMillis()))
+                }
+            }
+
+            Text(
+                modifier = Modifier.align(Alignment.Center),
+                text = currentTime,
+                fontSize = 20.sp,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 
     @Composable
@@ -68,7 +108,8 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("ServiceCast")
     private fun startRecord() {
         // 请求屏幕录制权限
-        val mediaProjectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        val mediaProjectionManager =
+            getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         startActivityForResult(
             mediaProjectionManager.createScreenCaptureIntent(),
             REQUEST_CODE_SCREEN_RECORD
@@ -103,7 +144,6 @@ class MainActivity : ComponentActivity() {
         manager.onStop(this)
     }
 }
-
 
 
 @Preview(showBackground = true)
