@@ -23,9 +23,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,14 +78,20 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun ShowTime() {
-        Box(modifier = Modifier.fillMaxSize()) {
-            val currentTime by remember(System.currentTimeMillis()) {
-                derivedStateOf {
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
-                     dateFormat.format(Date(System.currentTimeMillis()))
-                }
+        val time = remember {
+            mutableLongStateOf(System.currentTimeMillis())
+        }
+        LaunchedEffect(key1 = System.currentTimeMillis()) {
+            time.longValue = System.currentTimeMillis()
+        }
+        val currentTime by remember(time) {
+            derivedStateOf {
+                val dateFormat =
+                    SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+                dateFormat.format(Date(time.longValue))
             }
-
+        }
+        Box(modifier = Modifier.fillMaxSize()) {
             Text(
                 modifier = Modifier.align(Alignment.Center),
                 text = currentTime,
