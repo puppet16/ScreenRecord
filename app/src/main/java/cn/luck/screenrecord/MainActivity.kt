@@ -1,4 +1,4 @@
-package cn.xdf.screenrecord
+package cn.luck.screenrecord
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -24,11 +24,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,8 +34,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cn.xdf.screenrecord.record.ScreenRecordManager
-import cn.xdf.screenrecord.ui.theme.ScreenRecordTheme
+import cn.luck.screenrecord.record.ScreenRecordManager
+import cn.luck.screenrecord.ui.theme.ScreenRecordTheme
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -79,11 +78,16 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun ShowTime() {
         val time = remember {
-            mutableLongStateOf(System.currentTimeMillis())
+            mutableLongStateOf(System.currentTimeMillis()/ 1000)
         }
-        LaunchedEffect(key1 = System.currentTimeMillis()) {
-            time.longValue = System.currentTimeMillis()
+
+        LaunchedEffect(key1 = Unit) {
+            while (true) {
+                time.longValue = System.currentTimeMillis()
+                delay(1000)
+            }
         }
+
         val currentTime by remember(time) {
             derivedStateOf {
                 val dateFormat =
@@ -148,9 +152,9 @@ class MainActivity : ComponentActivity() {
 
 
     override fun onDestroy() {
-        super.onDestroy()
         // 停止所有录制并释放资源
         manager.onStop(this)
+        super.onDestroy()
     }
 }
 

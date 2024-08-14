@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "cn.xdf.screenrecord"
+    namespace = "cn.luck.screenrecord"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "cn.xdf.screenrecord"
+        applicationId = "cn.luck.screenrecord"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

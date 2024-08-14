@@ -1,4 +1,4 @@
-package cn.xdf.screenrecord.record
+package cn.luck.screenrecord.record
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -10,8 +10,8 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import cn.xdf.screenrecord.R
-import cn.xdf.screenrecord.util.LogUtil
+import cn.luck.screenrecord.R
+import cn.luck.screenrecord.util.LogUtil
 import com.google.gson.Gson
 
 /**
@@ -45,12 +45,13 @@ class SpliceScreenRecordService : Service() {
         LogUtil.d(TAG, "onStartCommand")
         resultCode = intent.getIntExtra("code", -1)
         resultData = intent.getParcelableExtra("data")
+        val journeyId = intent.getStringExtra("journeyId") ?: ""
         resultData?.let {
             LogUtil.d(
                 TAG,
                 "请求录屏结果：resultCode=$resultCode, resultData=${Gson().toJson(resultData)}"
             )
-            recorder?.startScreenRecording(resultCode, it)
+            recorder?.startScreenRecording(resultCode, it, journeyId)
         } ?: run {
             LogUtil.e(TAG, "请求录屏失败")
         }
@@ -59,12 +60,12 @@ class SpliceScreenRecordService : Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    fun startRecording(resultCode: Int, resultData: Intent) {
+    fun startRecording(resultCode: Int, resultData: Intent, journeyId: String) {
         LogUtil.d(
             TAG,
-            "请求录屏结果：resultCode=$resultCode, resultData=${Gson().toJson(resultData)}"
+            "startRecording：journeyId=$journeyId, resultCode=$resultCode, resultData=${Gson().toJson(resultData)}"
         )
-        recorder?.startScreenRecording(resultCode, resultData)
+        recorder?.startScreenRecording(resultCode, resultData, journeyId)
     }
 
     fun stopRecording() {
@@ -99,6 +100,11 @@ class SpliceScreenRecordService : Service() {
     override fun onBind(intent: Intent?): IBinder {
         LogUtil.d(TAG, "onBind")
         return ScreenRecordBinder()
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        LogUtil.d(TAG, "onUnbind")
+        return super.onUnbind(intent)
     }
 
     override fun unbindService(conn: ServiceConnection) {

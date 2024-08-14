@@ -1,4 +1,4 @@
-package cn.xdf.screenrecord.ui.theme
+package cn.luck.screenrecord.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

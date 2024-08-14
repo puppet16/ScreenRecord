@@ -1,4 +1,4 @@
-package cn.xdf.screenrecord.util
+package cn.luck.screenrecord.util
 
 import android.util.Log
 
@@ -43,6 +43,12 @@ internal object LogUtil {
     fun e(tag: String = TAG_DEFAULT, msg: String) {
         if (ENABLE_LOG) {
             Log.e("$TAG::$tag", msg)
+        }
+    }
+
+    fun printThreadInfo(tag: String = TAG_DEFAULT, msg: String = "") {
+        if (ENABLE_LOG) {
+            Log.e("$TAG::$tag", "$msg，线程信息：${Thread.currentThread().name}::${Thread.currentThread().id}")
         }
     }
 }
