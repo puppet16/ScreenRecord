@@ -22,7 +22,7 @@ import com.google.gson.Gson
  * desc    描述
  * ============================================================
  **/
-class SpliceScreenRecordService : Service() {
+class MultiScreenRecordService : Service() {
 
 
     companion object {
@@ -34,11 +34,11 @@ class SpliceScreenRecordService : Service() {
 
     private var resultCode: Int = -1
     private var resultData: Intent? = null
-    private var recorder: MutilScreenRecorder? = null
+    private var recorder: MultiScreenRecorder? = null
     override fun onCreate() {
         super.onCreate()
         showNotification()
-        recorder = MutilScreenRecorder(baseContext)
+        recorder = MultiScreenRecorder(baseContext)
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -104,6 +104,7 @@ class SpliceScreenRecordService : Service() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         LogUtil.d(TAG, "onUnbind")
+        recorder?.release()
         return super.onUnbind(intent)
     }
 
@@ -115,8 +116,8 @@ class SpliceScreenRecordService : Service() {
 
 
     inner class ScreenRecordBinder : Binder() {
-        val recordService: SpliceScreenRecordService
-            get() = this@SpliceScreenRecordService
+        val recordService: MultiScreenRecordService
+            get() = this@MultiScreenRecordService
     }
 
 

@@ -1,4 +1,4 @@
-package cn.luck.screenrecord.record
+package cn.luck.screenrecord.record2
 
 import android.content.Context
 import android.util.Log

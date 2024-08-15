@@ -35,7 +35,7 @@
         </activity>
 
         <service
-            android:name=".record.SpliceScreenRecordService"
+            android:name=".record.MultiScreenRecordService"
             android:enabled="true"
             android:foregroundServiceType="mediaProjection"
             tools:ignore="ForegroundServicePermission" />

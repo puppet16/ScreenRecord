@@ -17,12 +17,12 @@ import cn.luck.screenrecord.util.LogUtil
  **/
 class ScreenRecordManager {
 
-    var myService: SpliceScreenRecordService? = null
+    var myService: MultiScreenRecordService? = null
     var isBound = false
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as SpliceScreenRecordService.ScreenRecordBinder
+            val binder = service as MultiScreenRecordService.ScreenRecordBinder
             myService = binder.recordService
             isBound = true
         }
@@ -40,7 +40,7 @@ class ScreenRecordManager {
     fun onStart(context: Context) {
 
         LogUtil.d(TAG, "绑定录屏服务 onStart()")
-        Intent(context, SpliceScreenRecordService::class.java).also { intent ->
+        Intent(context, MultiScreenRecordService::class.java).also { intent ->
             context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
     }

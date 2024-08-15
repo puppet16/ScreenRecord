@@ -1,4 +1,4 @@
-package cn.luck.screenrecord.record
+package cn.luck.screenrecord.record2
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -15,7 +15,9 @@ import android.media.MediaRecorder
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.view.Surface
+import cn.luck.screenrecord.record.RecordFileManager
 import cn.luck.screenrecord.record.executor.SimpleThreadExecutor
+import cn.luck.screenrecord.record.utils.FileUtils
 import cn.luck.screenrecord.util.LogUtil
 import java.io.IOException
 
@@ -62,7 +64,7 @@ class SpliceScreenRecorder2(context: Context) {
     // 用于获取屏幕录制权限和创建 MediaProjection 对象
     private var mediaProjectionManager: MediaProjectionManager? = null
 
-    private var fileUtil = RecordFileUtil(context)
+    private var recordFileManager = RecordFileUtil(context)
 
     init {
         // 获取 MediaProjectionManager 实例，用于屏幕录制
@@ -72,7 +74,7 @@ class SpliceScreenRecorder2(context: Context) {
 
     fun startScreenRecording(resultCode: Int, data: Intent, journeyId: String) {
         mediaProjection = mediaProjectionManager?.getMediaProjection(resultCode, data)
-        fileUtil.setJourneyId(journeyId)
+        recordFileManager.setJourneyId(journeyId)
         setupMediaCodec()
         setupMediaProjection()
 
@@ -176,7 +178,7 @@ class SpliceScreenRecorder2(context: Context) {
         SimpleThreadExecutor.instance.submit({ // 使用线程启动新的视频段录制
             synchronized(muxerLock) { // 同步锁定muxerLock，确保MediaMuxer操作的线程安全
                 try {
-                    val outputPath = fileUtil.getOutputFilePath(segmentIndex) // 生成输出文件路径
+                    val outputPath = recordFileManager.getOutputFilePath(segmentIndex) // 生成输出文件路径
                     // 创建MediaMuxer，用于将编码数据写入新文件
                     mediaMuxer =
                         MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4).apply {
@@ -282,12 +284,12 @@ class SpliceScreenRecorder2(context: Context) {
     // 检查当前文件段的大小是否超过阈值
     private fun checkSegmentSize() {
         mediaMuxer?.let {
-            val outputPath = fileUtil.getOutputFilePath(segmentIndex - 1)
-            if (fileUtil.moreThanFileSize(outputPath)) {
-                LogUtil.d(TAG, "文件大小：${fileUtil.getFileSize(outputPath)} , $outputPath")
+            val outputPath = recordFileManager.getOutputFilePath(segmentIndex - 1)
+            if (recordFileManager.moreThanFileSize(outputPath)) {
+                LogUtil.d(TAG, "文件大小：${FileUtils.getFileSize(outputPath)} , $outputPath")
                 switchSegment()
             } else {
-                LogUtil.d(TAG, "文件大小：${fileUtil.getFileSize(outputPath)} , $outputPath")
+                LogUtil.d(TAG, "文件大小：${FileUtils.getFileSize(outputPath)} , $outputPath")
             }
         }
     }

@@ -76,7 +76,6 @@ class MainActivity : ComponentActivity() {
     fun ContentContainer() {
         Box(Modifier.fillMaxSize()) {
             ShowTime()
-            ButtonList(Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(20.dp))
         }
     }
 
@@ -88,10 +87,15 @@ class MainActivity : ComponentActivity() {
         val color = remember {
             mutableIntStateOf(generateRandomColor())
         }
+        val recording = remember {
+            mutableStateOf(false)
+        }
         LaunchedEffect(key1 = Unit) {
             while (true) {
                 time.longValue = System.currentTimeMillis()
-                color.intValue = generateRandomColor()
+                if (recording.value) {
+                    color.intValue = generateRandomColor()
+                }
                 delay(1000)
             }
         }
@@ -103,6 +107,8 @@ class MainActivity : ComponentActivity() {
                 dateFormat.format(Date(time.longValue))
             }
         }
+
+
         Box(modifier = Modifier.fillMaxSize().background(Color(color.intValue)).padding(bottom = 100.dp)) {
             Text(
                 modifier = Modifier.align(Alignment.Center),
@@ -111,16 +117,7 @@ class MainActivity : ComponentActivity() {
                 textAlign = TextAlign.Center,
                 color = Color(getComplementaryColor(color.intValue))
             )
-        }
-    }
-
-    @Composable
-    fun ButtonList(modifier: Modifier = Modifier) {
-        val recording = remember {
-            mutableStateOf(false)
-        }
-        Row(modifier) {
-            Button(modifier = Modifier.size(200.dp, 50.dp), onClick = {
+            Button(modifier = Modifier.size(200.dp, 70.dp).align(Alignment.BottomCenter).padding(bottom = 20.dp), onClick = {
                 if (recording.value) {
                     stopRecord()
                 } else {
@@ -132,6 +129,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
     private fun getComplementaryColor(color: Int): Int {
         val hsv = FloatArray(3)
@@ -186,6 +184,11 @@ class MainActivity : ComponentActivity() {
                     .show()
             }
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        manager.onStop(this)
     }
 
 
