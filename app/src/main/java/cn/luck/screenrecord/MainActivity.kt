@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
@@ -26,10 +28,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,6 +45,7 @@ import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
 
@@ -68,22 +74,24 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun ContentContainer() {
-        Column(Modifier.fillMaxSize()) {
-            ButtonList(Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(20.dp))
+        Box(Modifier.fillMaxSize()) {
             ShowTime()
+            ButtonList(Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(20.dp))
         }
     }
 
     @Composable
     fun ShowTime() {
         val time = remember {
-            mutableLongStateOf(System.currentTimeMillis()/ 1000)
+            mutableLongStateOf(System.currentTimeMillis() / 1000)
         }
-
+        val color = remember {
+            mutableIntStateOf(generateRandomColor())
+        }
         LaunchedEffect(key1 = Unit) {
             while (true) {
                 time.longValue = System.currentTimeMillis()
+                color.intValue = generateRandomColor()
                 delay(1000)
             }
         }
@@ -95,27 +103,57 @@ class MainActivity : ComponentActivity() {
                 dateFormat.format(Date(time.longValue))
             }
         }
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().background(Color(color.intValue)).padding(bottom = 100.dp)) {
             Text(
                 modifier = Modifier.align(Alignment.Center),
                 text = currentTime,
                 fontSize = 20.sp,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = Color(getComplementaryColor(color.intValue))
             )
         }
     }
 
     @Composable
     fun ButtonList(modifier: Modifier = Modifier) {
+        val recording = remember {
+            mutableStateOf(false)
+        }
         Row(modifier) {
-            Button(modifier = Modifier.size(200.dp, 50.dp), onClick = { startRecord() }) {
-                Text(text = "开始录屏")
-            }
-            Spacer(modifier = Modifier.width(30.dp))
-            Button(modifier = Modifier.size(200.dp, 50.dp), onClick = { stopRecord() }) {
-                Text(text = "停止录屏")
+            Button(modifier = Modifier.size(200.dp, 50.dp), onClick = {
+                if (recording.value) {
+                    stopRecord()
+                } else {
+                    startRecord()
+                }
+                recording.value = !recording.value
+            }) {
+                Text(text = if(recording.value) "结束录屏" else "开始录屏")
             }
         }
+    }
+
+    private fun getComplementaryColor(color: Int): Int {
+        val hsv = FloatArray(3)
+        android.graphics.Color.colorToHSV(color, hsv)
+
+        // 计算对比色的色调 (hue)
+        hsv[0] = (hsv[0] + 180) % 360
+
+        // 返回对比色
+        return android.graphics.Color.HSVToColor(hsv)
+    }
+
+    /**
+     * 随机一个颜色，不含黑色和灰色
+     * @return Int
+     */
+    private fun generateRandomColor(): Int {
+        val hue = Random.nextInt(0, 360) // 色调范围 0-360
+        val saturation = Random.nextFloat() * 0.5f + 0.5f // 饱和度范围 0.5-1.0，避免灰色
+        val lightness = Random.nextFloat() * 0.4f + 0.6f // 亮度范围 0.6-1.0，避免黑色
+
+        return android.graphics.Color.HSVToColor(floatArrayOf(hue.toFloat(), saturation, lightness))
     }
 
     @SuppressLint("ServiceCast")

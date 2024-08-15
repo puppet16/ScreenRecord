@@ -27,7 +27,7 @@ import java.io.IOException
  * desc    使用 MediaCodec 和 MediaMuxer 实现屏幕录制和音频合成
  * ============================================================
  **/
-class SpliceScreenRecorder(context: Context) {
+class SpliceScreenRecorder2(context: Context) {
     companion object {
         private const val TAG = "SpliceScreenRecorder"
         private const val SEGMENT_DURATION_MS = 10000L // 每段视频的时长，单位为毫秒

@@ -34,11 +34,11 @@ class SpliceScreenRecordService : Service() {
 
     private var resultCode: Int = -1
     private var resultData: Intent? = null
-    private var recorder: SpliceScreenRecorder? = null
+    private var recorder: MutilScreenRecorder? = null
     override fun onCreate() {
         super.onCreate()
         showNotification()
-        recorder = SpliceScreenRecorder(baseContext)
+        recorder = MutilScreenRecorder(baseContext)
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -51,7 +51,7 @@ class SpliceScreenRecordService : Service() {
                 TAG,
                 "请求录屏结果：resultCode=$resultCode, resultData=${Gson().toJson(resultData)}"
             )
-            recorder?.startScreenRecording(resultCode, it, journeyId)
+            recorder?.startRecording(resultCode, it, journeyId)
         } ?: run {
             LogUtil.e(TAG, "请求录屏失败")
         }
@@ -65,11 +65,11 @@ class SpliceScreenRecordService : Service() {
             TAG,
             "startRecording：journeyId=$journeyId, resultCode=$resultCode, resultData=${Gson().toJson(resultData)}"
         )
-        recorder?.startScreenRecording(resultCode, resultData, journeyId)
+        recorder?.startRecording(resultCode, resultData, journeyId)
     }
 
     fun stopRecording() {
-        recorder?.stopScreenRecording()
+        recorder?.stopRecording()
     }
 
     /**
@@ -109,7 +109,7 @@ class SpliceScreenRecordService : Service() {
 
     override fun unbindService(conn: ServiceConnection) {
         LogUtil.d(TAG, "unbindService")
-        recorder?.stopScreenRecording()
+        recorder?.release()
         super.unbindService(conn)
     }
 

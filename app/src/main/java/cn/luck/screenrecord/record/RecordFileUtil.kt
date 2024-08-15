@@ -20,18 +20,32 @@ class RecordFileUtil(context: Context) {
     private var RECORD_ROOT_DIR = ""
     private var journeyId: String = ""
 
+    // 视频段的索引
+    private var segmentIndex: Int = 0
+
+    private var nextFile: File? = null
+
     init {
         RECORD_ROOT_DIR = context.filesDir.absolutePath + "/ScreenRecordings"
     }
 
     companion object {
         private const val TAG = "RecordFileUtil"
+
         // 每段视频的最大文件大小，单位为字节
-        const val SEGMENT_MAX_SIZE_BYTES: Long = 20 * 1024 * 1024
+        const val SEGMENT_MAX_SIZE_BYTES: Long = 1 * 1024 * 1024
     }
 
     fun setJourneyId(journeyId: String) {
         this.journeyId = journeyId
+    }
+
+    fun getNextOutputFile(): File {
+        segmentIndex++
+        val result = nextFile
+        nextFile = File(getOutputFilePath(segmentIndex))
+        LogUtil.d(TAG, "getNextOutputFile() ${result ?: nextFile!!}")
+        return result ?: nextFile!!
     }
 
     /**
@@ -53,7 +67,7 @@ class RecordFileUtil(context: Context) {
         if (!segmentFile.exists()) {
             segmentFile.createNewFile()
         }
-        LogUtil.d(TAG, "当前切片文件路径：$segmentFilePath")
+        LogUtil.d(TAG, "当前切片文件路径：$segmentFilePath, ${segmentFile.absolutePath}, ${segmentFile.path}")
         return segmentFilePath
     }
 
@@ -76,7 +90,8 @@ class RecordFileUtil(context: Context) {
         val units = arrayOf("B", "KB", "MB", "GB", "TB")
         val digitGroups = (log10(sizeInBytes.toDouble()) / log10(1024.0)).toInt()
 
-        val sizeFormatted = DecimalFormat("#,##0.#").format(sizeInBytes / 1024.0.pow(digitGroups.toDouble()))
+        val sizeFormatted =
+            DecimalFormat("#,##0.#").format(sizeInBytes / 1024.0.pow(digitGroups.toDouble()))
         return "$sizeFormatted ${units[digitGroups]}"
     }
 
