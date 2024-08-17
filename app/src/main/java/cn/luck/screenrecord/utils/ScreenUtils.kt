@@ -1,7 +1,7 @@
-package cn.luck.screenrecord.record.utils
+package cn.luck.screenrecord.utils
 
 import android.content.Context
-import android.util.DisplayMetrics
+
 class ScreenUtils {
     companion object {
 

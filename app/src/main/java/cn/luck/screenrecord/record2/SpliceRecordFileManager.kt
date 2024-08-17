@@ -16,7 +16,7 @@ import kotlin.math.pow
  * desc    录屏文件管理
  * ============================================================
  **/
-class RecordFileUtil(context: Context) {
+class SpliceRecordFileManager(context: Context) {
     private var RECORD_ROOT_DIR = ""
     private var journeyId: String = ""
 

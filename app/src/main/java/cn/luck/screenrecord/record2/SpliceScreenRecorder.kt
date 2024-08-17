@@ -15,9 +15,8 @@ import android.media.MediaRecorder
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.view.Surface
-import cn.luck.screenrecord.record.RecordFileManager
 import cn.luck.screenrecord.record.executor.SimpleThreadExecutor
-import cn.luck.screenrecord.record.utils.FileUtils
+import cn.luck.screenrecord.utils.FileUtils
 import cn.luck.screenrecord.util.LogUtil
 import java.io.IOException
 
@@ -29,7 +28,7 @@ import java.io.IOException
  * desc    使用 MediaCodec 和 MediaMuxer 实现屏幕录制和音频合成
  * ============================================================
  **/
-class SpliceScreenRecorder2(context: Context) {
+class SpliceScreenRecorder(context: Context) {
     companion object {
         private const val TAG = "SpliceScreenRecorder"
         private const val SEGMENT_DURATION_MS = 10000L // 每段视频的时长，单位为毫秒
@@ -64,7 +63,7 @@ class SpliceScreenRecorder2(context: Context) {
     // 用于获取屏幕录制权限和创建 MediaProjection 对象
     private var mediaProjectionManager: MediaProjectionManager? = null
 
-    private var recordFileManager = RecordFileUtil(context)
+    private var recordFileManager = SpliceRecordFileManager(context)
 
     init {
         // 获取 MediaProjectionManager 实例，用于屏幕录制
@@ -72,7 +71,7 @@ class SpliceScreenRecorder2(context: Context) {
             context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
     }
 
-    fun startScreenRecording(resultCode: Int, data: Intent, journeyId: String) {
+    fun startRecording(resultCode: Int, data: Intent, journeyId: String) {
         mediaProjection = mediaProjectionManager?.getMediaProjection(resultCode, data)
         recordFileManager.setJourneyId(journeyId)
         setupMediaCodec()
@@ -329,8 +328,8 @@ class SpliceScreenRecorder2(context: Context) {
     }
 
     // 停止屏幕录制的方法
-    fun stopScreenRecording() {
-        LogUtil.d(TAG, "停止屏幕录制 stopScreenRecording()")
+    fun stopRecording() {
+        LogUtil.d(TAG, "停止屏幕录制 stopRecording()")
         LogUtil.printThreadInfo(msg="stopScreenRecording")
 
         isRecording = false
@@ -351,6 +350,12 @@ class SpliceScreenRecorder2(context: Context) {
         virtualDisplay?.release() // 释放VirtualDisplay资源
         virtualDisplay = null // 清空VirtualDisplay对象
         mediaProjection?.stop() // 停止MediaProjection
+    }
+
+    fun release() {
+        LogUtil.d(TAG, "release()")
+        stopRecording()
+
     }
 
 }

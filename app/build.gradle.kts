@@ -67,4 +67,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.google.gson)
+    implementation("com.google.android.exoplayer:exoplayer:2.19.0")
+
 }

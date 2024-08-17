@@ -9,7 +9,7 @@ import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import androidx.annotation.RequiresApi
-import cn.luck.screenrecord.record.utils.ScreenUtils
+import cn.luck.screenrecord.utils.ScreenUtils
 import cn.luck.screenrecord.util.LogUtil
 import java.io.IOException
 
@@ -158,10 +158,14 @@ class MultiScreenRecorder(context: Context) {
         virtualDisplay?.release()
     }
 
+
+    fun getRecorderFileDirPath(): String {
+        return recordFileManager.getRecorderFileDirPath()
+    }
+
     // 停止所有录制并释放资源
     fun release() {
         LogUtil.d(TAG, "release()")
-        stopRecording() // 停止录制
         mediaProjection?.stop() // 停止 MediaProjection
     }
 }

@@ -1,6 +1,7 @@
-package cn.luck.screenrecord.record.utils
+package cn.luck.screenrecord.utils
 
 import android.util.Log
+import cn.luck.screenrecord.util.LogUtil
 import java.io.File
 import java.text.DecimalFormat
 import kotlin.math.log10
@@ -49,7 +50,38 @@ class FileUtils {
             }
         }
 
+        /**
+         * 获取文件列表， 文件大小必须大于0
+         * @param dirPath String
+         * @return List<String>
+         */
+        fun getFileListByDirPath(dirPath: String): List<String> {
+            LogUtil.d(TAG, "getFileListByDirPath() dirPath=$dirPath")
+            if (dirPath.isEmpty()) return emptyList()
+            // 根据传入的路径创建 File 对象
+            val directory = File(dirPath)
 
+            // 检查目录是否存在并且是一个目录
+            if (directory.exists() && directory.isDirectory) {
+                // 获取目录下的所有文件和子目录，并过滤出文件
+                val filesList = directory.listFiles()?.filter { it.isFile && it.length() > 0 }
+                    ?: emptyList()
+
+                // 根据文件名中的序号进行升序排序
+                val sortFileList = filesList.sortedBy { file ->
+                    // 提取文件名中的序号（假设文件名格式为 "file_1.txt"）
+                    val fileName = file.name
+                    val number =
+                        fileName.substringAfter('_').substringBefore('.').toIntOrNull() ?: 0
+                    number
+                }.map { it.absolutePath }
+                LogUtil.d(TAG, "获取文件列表：并按序号升序排列：$sortFileList")
+                return sortFileList
+            } else {
+                // 如果目录不存在或不是目录，返回空列表
+                return emptyList()
+            }
+        }
 
 
         /**
@@ -90,5 +122,7 @@ class FileUtils {
             // 删除空的文件夹
             return directory.delete()
         }
+
+
     }
 }

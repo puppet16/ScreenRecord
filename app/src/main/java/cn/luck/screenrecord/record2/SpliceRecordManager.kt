@@ -1,4 +1,4 @@
-package cn.luck.screenrecord.record
+package cn.luck.screenrecord.record2
 
 import android.content.ComponentName
 import android.content.Context
@@ -15,14 +15,14 @@ import cn.luck.screenrecord.util.LogUtil
  * desc    录屏服务的管理
  * ============================================================
  **/
-class ScreenRecordManager {
+class SpliceRecordManager {
 
-    var myService: MultiScreenRecordService? = null
+    var myService: SpliceScreenRecordService? = null
     var isBound = false
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as MultiScreenRecordService.ScreenRecordBinder
+            val binder = service as SpliceScreenRecordService.ScreenRecordBinder
             myService = binder.recordService
             isBound = true
         }
@@ -40,7 +40,7 @@ class ScreenRecordManager {
     fun onStart(context: Context) {
 
         LogUtil.d(TAG, "绑定录屏服务 onStart()")
-        Intent(context, MultiScreenRecordService::class.java).also { intent ->
+        Intent(context, SpliceScreenRecordService::class.java).also { intent ->
             context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
     }
@@ -61,9 +61,5 @@ class ScreenRecordManager {
             context.unbindService(connection)
             isBound = false
         }
-    }
-
-    fun getRecorderFileDirPath(): String {
-       return myService?.getRecorderFileDirPath()?:""
     }
 }

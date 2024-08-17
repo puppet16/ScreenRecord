@@ -41,11 +41,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.luck.screenrecord.record.ScreenRecordManager
 import cn.luck.screenrecord.ui.theme.ScreenRecordTheme
+import cn.luck.screenrecord.utils.ColorUtils
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
 
@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
             mutableLongStateOf(System.currentTimeMillis() / 1000)
         }
         val color = remember {
-            mutableIntStateOf(generateRandomColor())
+            mutableIntStateOf(ColorUtils.generateRandomColor())
         }
         val recording = remember {
             mutableStateOf(false)
@@ -94,7 +94,7 @@ class MainActivity : ComponentActivity() {
             while (true) {
                 time.longValue = System.currentTimeMillis()
                 if (recording.value) {
-                    color.intValue = generateRandomColor()
+                    color.intValue = ColorUtils.generateRandomColor()
                 }
                 delay(1000)
             }
@@ -108,51 +108,73 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1F)
 
-        Box(modifier = Modifier.fillMaxSize().background(Color(color.intValue)).padding(bottom = 100.dp)) {
-            Text(
-                modifier = Modifier.align(Alignment.Center),
-                text = currentTime,
-                fontSize = 20.sp,
-                textAlign = TextAlign.Center,
-                color = Color(getComplementaryColor(color.intValue))
-            )
-            Button(modifier = Modifier.size(200.dp, 70.dp).align(Alignment.BottomCenter).padding(bottom = 20.dp), onClick = {
-                if (recording.value) {
-                    stopRecord()
-                } else {
-                    startRecord()
+                    .background(Color.Yellow)//Color(color.intValue))
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = currentTime,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                    color = Color.DarkGray //Color(ColorUtils.getComplementaryColor(color.intValue))
+                )
+
+            }
+
+            Row(
+                Modifier
+                    .height(100.dp)
+                    .fillMaxWidth()
+            ) {
+                Spacer(modifier = Modifier.width(100.dp))
+                Button(
+                    modifier = Modifier
+                        .size(200.dp, 70.dp)
+                        .align(Alignment.CenterVertically)
+                        .padding(bottom = 20.dp), onClick = {
+                        if (recording.value) {
+                            stopRecord()
+                        } else {
+                            startRecord()
+                        }
+                        recording.value = !recording.value
+                    }) {
+                    Text(text = if (recording.value) "结束录屏" else "开始录屏")
                 }
-                recording.value = !recording.value
-            }) {
-                Text(text = if(recording.value) "结束录屏" else "开始录屏")
+                Spacer(modifier = Modifier.width(100.dp))
+                Button(
+                    modifier = Modifier
+                        .size(200.dp, 70.dp)
+                        .align(Alignment.CenterVertically)
+                        .padding(bottom = 20.dp), onClick = {
+                        if (recording.value) {
+                            Toast.makeText(this@MainActivity, "等录完了再播放", Toast.LENGTH_SHORT)
+                                .show()
+                        } else {
+                            enterPlayerPage()
+                        }
+                    }) {
+                    Text(text = "进入播放页")
+                }
             }
         }
+
     }
 
-
-    private fun getComplementaryColor(color: Int): Int {
-        val hsv = FloatArray(3)
-        android.graphics.Color.colorToHSV(color, hsv)
-
-        // 计算对比色的色调 (hue)
-        hsv[0] = (hsv[0] + 180) % 360
-
-        // 返回对比色
-        return android.graphics.Color.HSVToColor(hsv)
+    private fun enterPlayerPage() {
+        startActivity(
+            Intent(this, ExoPlayerActivity::class.java).putExtra(
+                "dirPath",
+                manager.getRecorderFileDirPath()
+            )
+        )
     }
 
-    /**
-     * 随机一个颜色，不含黑色和灰色
-     * @return Int
-     */
-    private fun generateRandomColor(): Int {
-        val hue = Random.nextInt(0, 360) // 色调范围 0-360
-        val saturation = Random.nextFloat() * 0.5f + 0.5f // 饱和度范围 0.5-1.0，避免灰色
-        val lightness = Random.nextFloat() * 0.4f + 0.6f // 亮度范围 0.6-1.0，避免黑色
-
-        return android.graphics.Color.HSVToColor(floatArrayOf(hue.toFloat(), saturation, lightness))
-    }
 
     @SuppressLint("ServiceCast")
     private fun startRecord() {

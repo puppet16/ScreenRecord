@@ -1,4 +1,4 @@
-package cn.luck.screenrecord.record
+package cn.luck.screenrecord.record2
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -22,7 +22,7 @@ import com.google.gson.Gson
  * desc    描述
  * ============================================================
  **/
-class MultiScreenRecordService : Service() {
+class SpliceScreenRecordService : Service() {
 
 
     companion object {
@@ -34,16 +34,30 @@ class MultiScreenRecordService : Service() {
 
     private var resultCode: Int = -1
     private var resultData: Intent? = null
-    private var recorder: MultiScreenRecorder? = null
+    private var recorder: SpliceScreenRecorder? = null
     override fun onCreate() {
         super.onCreate()
         showNotification()
-        recorder = MultiScreenRecorder(baseContext)
+        recorder = SpliceScreenRecorder(baseContext)
     }
 
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        LogUtil.d(TAG, "onStartCommand")
+        resultCode = intent.getIntExtra("code", -1)
+        resultData = intent.getParcelableExtra("data")
+        val journeyId = intent.getStringExtra("journeyId") ?: ""
+        resultData?.let {
+            LogUtil.d(
+                TAG,
+                "请求录屏结果：resultCode=$resultCode, resultData=${Gson().toJson(resultData)}"
+            )
+            recorder?.startRecording(resultCode, it, journeyId)
+        } ?: run {
+            LogUtil.e(TAG, "请求录屏失败")
+        }
 
-    fun getRecorderFileDirPath(): String {
-        return recorder?.getRecorderFileDirPath()?:""
+
+        return super.onStartCommand(intent, flags, startId)
     }
 
     fun startRecording(resultCode: Int, resultData: Intent, journeyId: String) {
@@ -102,8 +116,8 @@ class MultiScreenRecordService : Service() {
 
 
     inner class ScreenRecordBinder : Binder() {
-        val recordService: MultiScreenRecordService
-            get() = this@MultiScreenRecordService
+        val recordService: SpliceScreenRecordService
+            get() = this@SpliceScreenRecordService
     }
 
 

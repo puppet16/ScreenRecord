@@ -33,9 +33,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity
+            android:name=".ExoPlayerActivity"
+            android:theme="@style/Theme.ScreenRecord"/>
         <service
             android:name=".record.MultiScreenRecordService"
+            android:enabled="true"
+            android:foregroundServiceType="mediaProjection"
+            tools:ignore="ForegroundServicePermission" />
+
+
+        <service
+            android:name=".record2.SpliceScreenRecordService"
             android:enabled="true"
             android:foregroundServiceType="mediaProjection"
             tools:ignore="ForegroundServicePermission" />
