@@ -1,7 +1,6 @@
 package cn.luck.screenrecord.utils
 
 import android.util.Log
-import cn.luck.screenrecord.util.LogUtil
 import java.io.File
 import java.text.DecimalFormat
 import kotlin.math.log10

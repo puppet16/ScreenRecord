@@ -11,7 +11,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import cn.luck.screenrecord.R
-import cn.luck.screenrecord.util.LogUtil
+import cn.luck.screenrecord.utils.LogUtil
 import com.google.gson.Gson
 
 /**

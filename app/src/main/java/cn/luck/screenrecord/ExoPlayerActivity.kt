@@ -6,12 +6,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
-import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.TextView
 import androidx.activity.ComponentActivity
-import cn.luck.screenrecord.util.LogUtil
+import cn.luck.screenrecord.utils.LogUtil
 import cn.luck.screenrecord.utils.FileUtils
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
@@ -104,8 +103,11 @@ class ExoPlayerActivity: ComponentActivity() {
     }
     private fun generateMediaSource(): ConcatenatingMediaSource {
         // 播放列表
-        val dirPath = (intent.getStringExtra("dirPath") ?: "")
+        var dirPath = (intent.getStringExtra("dirPath") ?: "")
 
+        if (!dirPath.contains("xxx")) {
+            dirPath +="/xxx"
+        }
         filePathList = FileUtils.getFileListByDirPath(dirPath)
         LogUtil.d("ExoPlayerActivity", "播放列表：$filePathList")
         val uris = filePathList.map {

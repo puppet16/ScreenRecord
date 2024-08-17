@@ -1,11 +1,12 @@
-package cn.luck.screenrecord.record
+package cn.luck.screenrecord
 
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import cn.luck.screenrecord.util.LogUtil
+import cn.luck.screenrecord.record.MultiScreenRecordService
+import cn.luck.screenrecord.utils.LogUtil
 
 /**
  * ============================================================

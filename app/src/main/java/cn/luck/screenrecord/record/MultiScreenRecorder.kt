@@ -10,7 +10,7 @@ import android.media.projection.MediaProjectionManager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import cn.luck.screenrecord.utils.ScreenUtils
-import cn.luck.screenrecord.util.LogUtil
+import cn.luck.screenrecord.utils.LogUtil
 import java.io.IOException
 
 class MultiScreenRecorder(context: Context) {

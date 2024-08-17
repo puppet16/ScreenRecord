@@ -2,7 +2,7 @@ package cn.luck.screenrecord.record2
 
 import android.content.Context
 import android.util.Log
-import cn.luck.screenrecord.util.LogUtil
+import cn.luck.screenrecord.utils.LogUtil
 import java.io.File
 import java.text.DecimalFormat
 import kotlin.math.log10

@@ -17,7 +17,7 @@ import android.media.projection.MediaProjectionManager
 import android.view.Surface
 import cn.luck.screenrecord.record.executor.SimpleThreadExecutor
 import cn.luck.screenrecord.utils.FileUtils
-import cn.luck.screenrecord.util.LogUtil
+import cn.luck.screenrecord.utils.LogUtil
 import java.io.IOException
 
 /**
@@ -354,7 +354,6 @@ class SpliceScreenRecorder(context: Context) {
 
     fun release() {
         LogUtil.d(TAG, "release()")
-        stopRecording()
 
     }
 

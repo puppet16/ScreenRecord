@@ -2,7 +2,7 @@ package cn.luck.screenrecord.record
 
 import android.content.Context
 import cn.luck.screenrecord.utils.FileUtils
-import cn.luck.screenrecord.util.LogUtil
+import cn.luck.screenrecord.utils.LogUtil
 import java.io.File
 
 /**
@@ -30,7 +30,7 @@ class RecordFileManager(context: Context) {
         private const val TAG = "RecordFileManager"
 
         // 每段视频的最大文件大小，单位为字节
-        const val SEGMENT_MAX_SIZE_BYTES: Long = 2 * 1024 * 1024
+        const val SEGMENT_MAX_SIZE_BYTES: Long = 1 * 1024 * 1024
     }
 
     fun setJourneyId(journeyId: String) {
