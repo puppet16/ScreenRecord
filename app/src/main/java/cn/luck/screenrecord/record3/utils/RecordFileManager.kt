@@ -80,6 +80,7 @@ class RecordFileManager(context: Context) {
      * @param segmentIndex String 切片文件的下标
      * @param journeyId String 课程唯一标识
      */
+
     private fun getOutputFilePath(): String {
         // 确保根目录存在
         FileUtils.modifyDir(RECORD_ROOT_DIR)

@@ -11,6 +11,7 @@ import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.os.Bundle
 import cn.luck.screenrecord.record3.FileSizeSpliceChecker
 import cn.luck.screenrecord.record3.ScreenRecordService3
 import cn.luck.screenrecord.record3.config.AudioConfig
@@ -118,6 +119,12 @@ class ScreenRecorder(
         }, object : WorkManager.WorkCallback<Unit> {
             override fun onSuccess(data: Unit) {
                 callback?.onStart() // 录制任务成功后调用回调通知开始
+                spliceChecker.checkSplice {
+                    LogUtil.printThreadInfo(TAG, "spliceChecker() callback splice=$it")
+                    if (it) {
+                        spliceFile()
+                    }
+                }
             }
 
             override fun onError(exception: Throwable) {
@@ -127,12 +134,6 @@ class ScreenRecorder(
                 release()            // 释放资源
             }
         })
-        spliceChecker.checkSplice {
-            LogUtil.printThreadInfo(TAG, "spliceChecker() callback splice=$it")
-            if (it) {
-                spliceFile()
-            }
-        }
     }
 
 
@@ -172,8 +173,10 @@ class ScreenRecorder(
                     index: Int,
                     info: MediaCodec.BufferInfo
                 ) {
-                    LogUtil.e(TAG, "videoEncoder - onOutputBufferAvailable() index=$index")
-                    LogUtil.printThreadInfo(TAG, "videoEncoder - onOutputBufferAvailable() index=$index")
+                    LogUtil.printThreadInfo(
+                        TAG,
+                        "videoEncoder - onOutputBufferAvailable() index=$index"
+                    )
                     workManager.addWork({
                         muxVideo(index, info) // 在工作管理器中处理视频数据的复用
                     }, object : WorkManager.WorkCallback<Unit> {
@@ -292,6 +295,9 @@ class ScreenRecorder(
         LogUtil.d(TAG, "切换切片文件")
         LogUtil.printThreadInfo(TAG, "spliceFile()")
         releaseMuxer()
+        val params = Bundle()
+        params.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0)
+        videoEncoder?.getRecorderEncoder()?.setParameters(params)
         setupMuxer()
         startMuxerIfReady()
     }
