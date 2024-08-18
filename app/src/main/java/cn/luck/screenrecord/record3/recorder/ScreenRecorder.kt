@@ -11,8 +11,7 @@ import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
-import android.os.Handler
-import cn.luck.screenrecord.record2.SpliceScreenRecorder
+import cn.luck.screenrecord.record3.FileSizeSpliceChecker
 import cn.luck.screenrecord.record3.ScreenRecordService3
 import cn.luck.screenrecord.record3.config.AudioConfig
 import cn.luck.screenrecord.record3.config.VideoConfig
@@ -20,10 +19,8 @@ import cn.luck.screenrecord.record3.encoder.BaseRecorderEncoder
 import cn.luck.screenrecord.record3.encoder.IRecorderEncoder
 import cn.luck.screenrecord.record3.encoder.VideoRecorderEncoder
 import cn.luck.screenrecord.record3.utils.RecordFileManager
-import cn.luck.screenrecord.utils.FileUtils
 import cn.luck.screenrecord.utils.LogUtil
 import cn.luck.screenrecord.utils.WorkManager
-import kotlinx.coroutines.delay
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.LinkedList
@@ -43,7 +40,7 @@ class ScreenRecorder(
     private var videoTrackIndex = INVALID_INDEX         // 视频轨道索引
     private var audioTrackIndex = INVALID_INDEX         // 音频轨道索引
     private var muxer: MediaMuxer? = null               // 媒体复用器，用于将音频和视频合成为一个文件
-    private var muxerStarted = false                    // 复用器是否已启动
+    private var muxerStarted = AtomicBoolean(false)         // 复用器是否已启动
 
     private val forceQuit = AtomicBoolean(false)        // 是否强制退出
     private val isRunning = AtomicBoolean(false)        // 录制是否正在进行
@@ -66,6 +63,10 @@ class ScreenRecorder(
 
     private val recordFileManager by lazy {
         RecordFileManager(context)
+    }
+
+    private val spliceChecker by lazy {
+        FileSizeSpliceChecker(recordFileManager)
     }
 
     // 回调接口定义
@@ -126,6 +127,12 @@ class ScreenRecorder(
                 release()            // 释放资源
             }
         })
+        spliceChecker.checkSplice {
+            LogUtil.printThreadInfo(TAG, "spliceChecker() callback splice=$it")
+            if (it) {
+                spliceFile()
+            }
+        }
     }
 
 
@@ -161,11 +168,12 @@ class ScreenRecorder(
                 }
 
                 override fun onOutputBufferAvailable(
-                    codec: BaseRecorderEncoder?,
+                    encoder: BaseRecorderEncoder?,
                     index: Int,
                     info: MediaCodec.BufferInfo
                 ) {
-                    LogUtil.d(TAG, "videoEncoder - onOutputBufferAvailable() index=$index")
+                    LogUtil.e(TAG, "videoEncoder - onOutputBufferAvailable() index=$index")
+                    LogUtil.printThreadInfo(TAG, "videoEncoder - onOutputBufferAvailable() index=$index")
                     workManager.addWork({
                         muxVideo(index, info) // 在工作管理器中处理视频数据的复用
                     }, object : WorkManager.WorkCallback<Unit> {
@@ -189,7 +197,7 @@ class ScreenRecorder(
                     encoder: BaseRecorderEncoder?,
                     format: MediaFormat?
                 ) {
-                    LogUtil.d(TAG, "prepareVideoEncoder - onOutputFormatChanged")
+                    LogUtil.e(TAG, "prepareVideoEncoder - onOutputFormatChanged")
                     videoOutputFormat = format // 设置视频输出格式
                     startMuxerIfReady() // 检查是否可以启动复用器
                 }
@@ -213,7 +221,7 @@ class ScreenRecorder(
                 }
 
                 override fun onOutputBufferAvailable(
-                    codec: BaseRecorderEncoder?,
+                    encoder: BaseRecorderEncoder?,
                     index: Int,
                     info: MediaCodec.BufferInfo
                 ) {
@@ -234,6 +242,7 @@ class ScreenRecorder(
                             callback?.onStop(exception)
                             release()
                         }
+
                     })
                 }
 
@@ -241,7 +250,7 @@ class ScreenRecorder(
                     encoder: BaseRecorderEncoder?,
                     format: MediaFormat?
                 ) {
-                    LogUtil.d(TAG, "prepareAudioEncoder - onOutputFormatChanged")
+                    LogUtil.e(TAG, "prepareAudioEncoder - onOutputFormatChanged")
                     audioOutputFormat = format // 设置音频输出格式
                     startMuxerIfReady() // 检查是否可以启动复用器
                 }
@@ -259,8 +268,9 @@ class ScreenRecorder(
 
     private fun startMuxerIfReady() {
         LogUtil.d(TAG, "startMuxerIfReady()1")
+        LogUtil.printThreadInfo(TAG, "startMuxerIfReady()1")
         // 如果复用器已启动或格式未准备好，则返回
-        if (muxerStarted || videoOutputFormat == null || (audioEncoder != null && audioOutputFormat == null)) {
+        if (muxerStarted.get() || videoOutputFormat == null || (audioEncoder != null && audioOutputFormat == null)) {
             LogUtil.d(
                 TAG,
                 "startMuxerIfReady(), 避免重复调用混合器开启， muxerStarted=$muxerStarted"
@@ -274,34 +284,18 @@ class ScreenRecorder(
             if (audioEncoder == null) INVALID_INDEX else muxer?.addTrack(audioOutputFormat!!)
                 ?: INVALID_INDEX // 添加音频轨道
         muxer?.start() // 启动复用器
-        muxerStarted = true
+        muxerStarted.set(true)
         processPendingBuffers() // 处理待处理的缓冲区
-        checkFileSize()
     }
 
-    private fun checkFileSize() {
-        workManager.addWork({
-            while (true) {
-                if (recordFileManager.moreThanFileSize()) {
-                    break
-                }
-                delay(2000)
-            }
-            LogUtil.d(TAG, "当前切片文件超过最大值，切换下一个文件")
-            releaseMuxer()
-            setupMuxer()
-            startMuxerIfReady()
-        }, object : WorkManager.WorkCallback<Unit> {
-            override fun onSuccess(data: Unit) {
-                LogUtil.d(TAG, "checkFileSize，workManager, onSuccess")
-            }
-
-            override fun onError(exception: Throwable) {
-                LogUtil.e(TAG, "调用检查文件大小失败：${exception.printStackTrace()}")
-            }
-
-        })
+    private fun spliceFile() {
+        LogUtil.d(TAG, "切换切片文件")
+        LogUtil.printThreadInfo(TAG, "spliceFile()")
+        releaseMuxer()
+        setupMuxer()
+        startMuxerIfReady()
     }
+
 
     private fun processPendingBuffers() {
         LogUtil.d(
@@ -328,82 +322,12 @@ class ScreenRecorder(
         }
     }
 
-    fun quit() {
-        forceQuit.set(true)  // 设置强制退出标志
-        if (!isRunning.get()) {
-            release()        // 如果未在运行，直接释放资源
-        } else {
-            stopRecording(false)  // 否则，停止录制
-        }
-    }
-
-    fun setCallback(callback: Callback?) {
-        this.callback = callback // 设置回调接口
-    }
-
-    private fun stopRecording(stopWithEOS: Boolean) {
-        if (stopWithEOS) {
-            signalEndOfStream() // 发出结束流的信号
-        } else {
-            stopEncoders() // 停止编码器
-        }
-        release() // 释放资源
-    }
-
-    private fun stopEncoders() {
-        LogUtil.d(TAG, "stopEncoders")
-        isRunning.set(false) // 设置录制状态为停止
-        videoEncoder?.stop() // 停止视频编码器
-        audioEncoder?.stop() // 停止音频编码器
-    }
-
-    private fun releaseMuxer() {
-        if (muxerStarted) {
-            LogUtil.d(TAG, "releaseMuxer()")
-            muxer?.stop() // 停止复用器
-            muxer?.release() // 释放复用器
-            muxer = null
-            muxerStarted = false
-        }
-    }
-
-    private fun release() {
-        LogUtil.d(TAG, "release")
-        virtualDisplay?.surface = null // 释放虚拟显示的表面
-        virtualDisplay = null
-
-        videoOutputFormat = null
-        audioOutputFormat = null
-        videoTrackIndex = INVALID_INDEX
-        audioTrackIndex = INVALID_INDEX
-
-        workManager.release() // 释放工作管理器
-
-        videoEncoder?.release() // 释放视频编码器
-        audioEncoder?.release() // 释放音频编码器
-
-        releaseMuxer()
-    }
-
-    private fun signalEndOfStream() {
-        LogUtil.d(TAG, "signalEndOfStream")
-        // 为视频和音频轨道发出结束流的信号
-        val eos = MediaCodec.BufferInfo().apply {
-            set(0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-        }
-        if (videoTrackIndex != INVALID_INDEX) {
-            writeSampleData(videoTrackIndex, eos, ByteBuffer.allocate(0)) // 写入视频的结束流数据
-        }
-        if (audioTrackIndex != INVALID_INDEX) {
-            writeSampleData(audioTrackIndex, eos, ByteBuffer.allocate(0)) // 写入音频的结束流数据
-        }
-        videoTrackIndex = INVALID_INDEX
-        audioTrackIndex = INVALID_INDEX
-    }
-
-    private fun muxVideo(index: Int, info: MediaCodec.BufferInfo) {
+    private fun muxVideo(index: Int?, info: MediaCodec.BufferInfo?) {
         LogUtil.d(TAG, "muxVideo() index=$index")
-        if (!isRunning.get() || !muxerStarted || videoTrackIndex == INVALID_INDEX) {
+        if (index == null || info == null) {
+            return
+        }
+        if (!isRunning.get() || !muxerStarted.get() || videoTrackIndex == INVALID_INDEX) {
             LogUtil.d(
                 TAG,
                 "视频数据存入缓存，muxerStarted=$muxerStarted, videoTrackIndex=$videoTrackIndex"
@@ -419,9 +343,12 @@ class ScreenRecorder(
         }
     }
 
-    private fun muxAudio(index: Int, info: MediaCodec.BufferInfo) {
+    private fun muxAudio(index: Int?, info: MediaCodec.BufferInfo?) {
         LogUtil.d(TAG, "muxAudio() muxerStarted=$muxerStarted")
-        if (!isRunning.get() || !muxerStarted || audioTrackIndex == INVALID_INDEX) {
+        if (index == null || info == null) {
+            return
+        }
+        if (!isRunning.get() || !muxerStarted.get() || audioTrackIndex == INVALID_INDEX) {
             LogUtil.d(
                 TAG,
                 "音频数据存入缓存，muxerStarted=$muxerStarted, videoTrackIndex=$videoTrackIndex"
@@ -448,7 +375,7 @@ class ScreenRecorder(
         }
         try {
             if (buffer.size != 0 && (buffer.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) == 0) {
-                encodedData?.let {
+                encodedData.let {
                     it.position(buffer.offset)
                     it.limit(buffer.offset + buffer.size)
                     muxer?.writeSampleData(track, it, buffer) // 将数据写入复用器
@@ -461,8 +388,82 @@ class ScreenRecorder(
 
     }
 
+    fun quit() {
+        forceQuit.set(true)  // 设置强制退出标志
+        spliceChecker.stopCheck()
+        if (!isRunning.get()) {
+            release()        // 如果未在运行，直接释放资源
+        } else {
+            stopRecording(false)  // 否则，停止录制
+        }
+    }
+
+    private fun signalEndOfStream() {
+        LogUtil.d(TAG, "signalEndOfStream")
+        // 为视频和音频轨道发出结束流的信号
+        val eos = MediaCodec.BufferInfo().apply {
+            set(0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+        }
+        if (videoTrackIndex != INVALID_INDEX) {
+            writeSampleData(videoTrackIndex, eos, ByteBuffer.allocate(0)) // 写入视频的结束流数据
+        }
+        if (audioTrackIndex != INVALID_INDEX) {
+            writeSampleData(audioTrackIndex, eos, ByteBuffer.allocate(0)) // 写入音频的结束流数据
+        }
+        videoTrackIndex = INVALID_INDEX
+        audioTrackIndex = INVALID_INDEX
+    }
+
+    fun setCallback(callback: Callback?) {
+        this.callback = callback // 设置回调接口
+    }
+
+    private fun stopRecording(stopWithEOS: Boolean) {
+        if (stopWithEOS) {
+            signalEndOfStream() // 发出结束流的信号
+        } else {
+            stopEncoders() // 停止编码器
+        }
+        release() // 释放资源
+    }
+
+    private fun stopEncoders() {
+        LogUtil.d(TAG, "stopEncoders")
+        isRunning.set(false) // 设置录制状态为停止
+        videoEncoder?.stop() // 停止视频编码器
+        audioEncoder?.stop() // 停止音频编码器
+    }
+
+    private fun releaseMuxer() {
+        if (muxerStarted.get()) {
+            LogUtil.d(TAG, "releaseMuxer()")
+            muxerStarted.set(false)
+            muxer?.stop() // 停止复用器
+            muxer?.release() // 释放复用器
+            muxer = null
+        }
+    }
+
+    private fun release() {
+        LogUtil.d(TAG, "release")
+        virtualDisplay?.surface = null // 释放虚拟显示的表面
+        virtualDisplay = null
+
+        videoOutputFormat = null
+        audioOutputFormat = null
+        videoTrackIndex = INVALID_INDEX
+        audioTrackIndex = INVALID_INDEX
+
+        workManager.release() // 释放工作管理器
+
+        videoEncoder?.release() // 释放视频编码器
+        audioEncoder?.release() // 释放音频编码器
+
+        releaseMuxer()
+    }
+
     fun getRecorderFileDirPath(): String {
-        return recordFileManager.getRecorderFileDirPath() ?: ""
+        return recordFileManager.getRecorderFileDirPath()
     }
 
     companion object {

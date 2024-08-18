@@ -53,16 +53,14 @@ class ScreenRecordService3 : Service() {
         private const val AUDIO_BIT_RATE = 96000 // 音频比特率
         private const val AUDIO_SAMPLE_RATE = 44100 // 音频采样率
 
-         const val DISPLAY_WIDTH = 1920 // 显示宽度
-         const val DISPLAY_HEIGHT = 1080 // 显示高度
+        const val DISPLAY_WIDTH = 1920 // 显示宽度
+        const val DISPLAY_HEIGHT = 1080 // 显示高度
 
         const val VIDEO_AVC = MIMETYPE_VIDEO_AVC // H.264 Advanced Video Coding
         const val AUDIO_AAC = MIMETYPE_AUDIO_AAC // H.264 Advanced Audio Coding
 
     }
 
-    private var resultCode: Int = -1
-    private var resultData: Intent? = null
     private var recorder: ScreenRecorder? = null
 
 
@@ -88,21 +86,20 @@ class ScreenRecordService3 : Service() {
     }
 
 
-
     private fun newRecorder(videoConfig: VideoConfig, audioConfig: AudioConfig): ScreenRecorder {
         val recorder = ScreenRecorder(baseContext, videoConfig, audioConfig)
         recorder.setCallback(object : ScreenRecorder.Callback {
             override fun onStop(error: Throwable?) {
-                LogUtil.e(TAG, "recorder error! error=${error?.printStackTrace()}")
+                LogUtil.i(TAG, "recorder error! error=${error?.printStackTrace()}")
             }
 
             override fun onStart() {
-                LogUtil.e(TAG, "录制开始了")
+                LogUtil.i(TAG, "录制开始了")
 
             }
 
             override fun onRecording(presentationTimeUs: Long) {
-                LogUtil.e(TAG, "正在录制中， presentationTimeUs=$presentationTimeUs")
+                LogUtil.i(TAG, "正在录制中， presentationTimeUs=$presentationTimeUs")
             }
 
         })
@@ -115,7 +112,7 @@ class ScreenRecordService3 : Service() {
             .setMimeType(AUDIO_AAC)
             .setChannelCount(1)
             .setSampleRate(AUDIO_SAMPLE_RATE)
-            .setProfile(MediaCodecInfo.CodecProfileLevel.AACObjectMain)
+            .setProfile(CodecProfileLevel.AACObjectMain)
             .build()
 
     }
@@ -159,8 +156,9 @@ class ScreenRecordService3 : Service() {
             .build()
         startForeground(NOTIFICATION_ID, notification)
     }
+
     fun getRecorderFileDirPath(): String {
-        return recorder?.getRecorderFileDirPath() ?:""
+        return recorder?.getRecorderFileDirPath() ?: ""
     }
 
     override fun onBind(intent: Intent?): IBinder {
