@@ -105,8 +105,8 @@ class ExoPlayerActivity: ComponentActivity() {
         // 播放列表
         var dirPath = (intent.getStringExtra("dirPath") ?: "")
 
-        if (!dirPath.contains("xxx")) {
-            dirPath +="/xxx"
+        if (!dirPath.contains("YYY")) {
+            dirPath +="/YYY"
         }
         filePathList = FileUtils.getFileListByDirPath(dirPath)
         LogUtil.d("ExoPlayerActivity", "播放列表：$filePathList")

@@ -52,9 +52,10 @@ abstract class BaseRecorderEncoder(private val codecName: String? = null) : IRec
      * 该方法必须要在子线程里调用
      */
     override fun prepare() {
-        if (Looper.myLooper() == null || Looper.myLooper() == Looper.getMainLooper()) {
-            throw IllegalArgumentException("不能在主线程里调用该方法 prepare")
-        }
+//        if (Looper.myLooper() == null || Looper.myLooper() == Looper.getMainLooper()) {
+//            throw IllegalArgumentException("不能在主线程里调用该方法 prepare")
+//        }
+        LogUtil.printThreadInfo(TAG, "prepare()")
         if (recorderEncoder != null) {
             throw IllegalArgumentException("已经准备过了 mEncoder 不为空")
         }
@@ -62,19 +63,19 @@ abstract class BaseRecorderEncoder(private val codecName: String? = null) : IRec
         val format = createMediaFormat()
         LogUtil.d(TAG, "创建媒体格式：$format")
         val mimeType = format.getString(MediaFormat.KEY_MIME) ?: ""
-        val mediaCodec = createMediaCodec(mimeType)
-        try {
-            // NOTE: MediaCodec maybe crash on some devices due to null callback
-            mediaCodec.setCallback(codecCallback)
-            mediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
-            onEncoderConfigured(mediaCodec)
-            mediaCodec.start()
-        } catch (e: MediaCodec.CodecException) {
-            LogUtil.e(TAG, "配置 MediaCodec 失败!\n  format$format, exception=$e")
-            throw e
+        recorderEncoder = createMediaCodec(mimeType)
+        recorderEncoder?.let {
+            try {
+                // NOTE: MediaCodec maybe crash on some devices due to null callback
+                it.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+                onEncoderConfigured(it)
+                it.setCallback(codecCallback)
+                it.start()
+            } catch (e: MediaCodec.CodecException) {
+                LogUtil.e(TAG, "配置 MediaCodec 失败!\n  format$format, exception=$e")
+                throw e
+            }
         }
-        recorderEncoder = mediaCodec
-
     }
 
     /**
@@ -97,7 +98,7 @@ abstract class BaseRecorderEncoder(private val codecName: String? = null) : IRec
         return MediaCodec.createEncoderByType(type)
     }
 
-    protected fun getRecorderEncoder(): MediaCodec {
+    fun getRecorderEncoder(): MediaCodec {
         return recorderEncoder ?: throw NullPointerException("MediaCodec 不能为空")
     }
 
@@ -133,6 +134,7 @@ abstract class BaseRecorderEncoder(private val codecName: String? = null) : IRec
     fun releaseOutputBuffer(index: Int) {
         getRecorderEncoder().releaseOutputBuffer(index, false)
     }
+
     /**
      * 创建媒体格式
      */
@@ -144,8 +146,7 @@ abstract class BaseRecorderEncoder(private val codecName: String? = null) : IRec
      *
      * @param encoder MediaCodec
      */
-    protected fun onEncoderConfigured(encoder: MediaCodec) {
-    }
+    protected open fun onEncoderConfigured(encoder: MediaCodec) {}
 
     override fun stop() {
         LogUtil.d(TAG, "stop()")
@@ -153,7 +154,7 @@ abstract class BaseRecorderEncoder(private val codecName: String? = null) : IRec
     }
 
     override fun release() {
-        LogUtil.d(TAG, "stop()")
+        LogUtil.d(TAG, "release()")
         recorderEncoder?.release()
         recorderEncoder = null
     }
@@ -171,14 +172,14 @@ abstract class BaseRecorderEncoder(private val codecName: String? = null) : IRec
 
 
     abstract class BaseRecorderEncoderCallback : IRecorderEncoder.IRecorderEncoderCallback {
-        fun onInputBufferAvailable(encoder: BaseRecorderEncoder?, index: Int) {}
+        open fun onInputBufferAvailable(encoder: BaseRecorderEncoder?, index: Int) {}
 
-        fun onOutputFormatChanged(encoder: BaseRecorderEncoder?, format: MediaFormat?) {}
+        open fun onOutputFormatChanged(encoder: BaseRecorderEncoder?, format: MediaFormat?) {}
 
-        fun onOutputBufferAvailable(
+        open fun onOutputBufferAvailable(
             encoder: BaseRecorderEncoder?,
             index: Int,
-            info: MediaCodec.BufferInfo?
+            info: MediaCodec.BufferInfo
         ) {
         }
     }

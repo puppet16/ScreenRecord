@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
  * desc    使用协程进行线程切换，在IO线程做耗时操作
  * ============================================================
  **/
-internal class WorkManager {
+class WorkManager {
 
     // 协程作用域用于统一管理协程，
     // 其中 SupervisorJob 的子协程发生异常被取消时不会同时取消SupervisorJob的其它子协程，且错误让协程自行处理
@@ -27,17 +27,19 @@ internal class WorkManager {
      * @param block Function0<R>
      * @param callback NetCallback<R>
      */
-    fun <R> addWork(block: () -> R, callback: WorkCallback<R>) {
+    fun <R> addWork(block: suspend () -> R, callback: WorkCallback<R>? = null) {
         scope.launch {
             // Result 会将 block 执行的所有异常情况放到 failure 中，将正常执行的结果放到 success 中
             Result.runCatching {
-                block.invoke()
+                withContext(Dispatchers.IO) {
+                    block.invoke()
+                }
             }.run {
                 // 切换到主线程
                 withContext(Dispatchers.Main) {
                     // 根据 Result 的回调返回用户注册的回调结果
-                    onSuccess { result -> callback.onSuccess(result) }
-                    onFailure { error -> callback.onError(error) }
+                    onSuccess { result -> callback?.onSuccess(result) }
+                    onFailure { error -> callback?.onError(error) }
                 }
             }
         }

@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import cn.luck.screenrecord.record.MultiScreenRecordService
+import cn.luck.screenrecord.record3.ScreenRecordService3
 import cn.luck.screenrecord.utils.LogUtil
 
 /**
@@ -18,12 +18,12 @@ import cn.luck.screenrecord.utils.LogUtil
  **/
 class ScreenRecordManager {
 
-    var myService: MultiScreenRecordService? = null
+    var myService: ScreenRecordService3? = null
     var isBound = false
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            val binder = service as MultiScreenRecordService.ScreenRecordBinder
+            val binder = service as ScreenRecordService3.ScreenRecordBinder
             myService = binder.recordService
             isBound = true
         }
@@ -41,7 +41,7 @@ class ScreenRecordManager {
     fun onStart(context: Context) {
 
         LogUtil.d(TAG, "绑定录屏服务 onStart()")
-        Intent(context, MultiScreenRecordService::class.java).also { intent ->
+        Intent(context, ScreenRecordService3::class.java).also { intent ->
             context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
     }

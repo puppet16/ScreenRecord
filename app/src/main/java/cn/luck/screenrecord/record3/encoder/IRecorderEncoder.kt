@@ -23,7 +23,7 @@ interface IRecorderEncoder {
 
 
     interface IRecorderEncoderCallback {
-        fun onError(encoder: IRecorderEncoder?, exception: Exception?)
+        fun onError(encoder: IRecorderEncoder?, exception: Throwable?)
     }
 
 }

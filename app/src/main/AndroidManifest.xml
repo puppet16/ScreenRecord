@@ -48,6 +48,14 @@
             android:enabled="true"
             android:foregroundServiceType="mediaProjection"
             tools:ignore="ForegroundServicePermission" />
+
+
+
+        <service
+            android:name=".record3.ScreenRecordService3"
+            android:enabled="true"
+            android:foregroundServiceType="mediaProjection"
+            tools:ignore="ForegroundServicePermission" />
     </application>
 
 </manifest>
