@@ -44,15 +44,7 @@
 
 
         <service
-            android:name=".record2.SpliceScreenRecordService"
-            android:enabled="true"
-            android:foregroundServiceType="mediaProjection"
-            tools:ignore="ForegroundServicePermission" />
-
-
-
-        <service
-            android:name=".record3.ScreenRecordService3"
+            android:name=".record3.recorder.SpliceScreenRecordService"
             android:enabled="true"
             android:foregroundServiceType="mediaProjection"
             tools:ignore="ForegroundServicePermission" />

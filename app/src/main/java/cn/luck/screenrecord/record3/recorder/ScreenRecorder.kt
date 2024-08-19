@@ -12,14 +12,14 @@ import android.media.MediaMuxer
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
-import cn.luck.screenrecord.record3.FileSizeSpliceChecker
-import cn.luck.screenrecord.record3.ScreenRecordService3
+import cn.luck.screenrecord.record3.splicechecker.FileSizeSpliceChecker
 import cn.luck.screenrecord.record3.config.AudioConfig
 import cn.luck.screenrecord.record3.config.VideoConfig
 import cn.luck.screenrecord.record3.encoder.BaseRecorderEncoder
 import cn.luck.screenrecord.record3.encoder.IRecorderEncoder
 import cn.luck.screenrecord.record3.encoder.VideoRecorderEncoder
-import cn.luck.screenrecord.record3.utils.RecordFileManager
+import cn.luck.screenrecord.record3.manager.RecordFileManager
+import cn.luck.screenrecord.record3.splicechecker.ISpliceChecker
 import cn.luck.screenrecord.utils.LogUtil
 import cn.luck.screenrecord.utils.OrderWorkManager
 import cn.luck.screenrecord.utils.WorkManager
@@ -81,7 +81,7 @@ class ScreenRecorder(
         RecordFileManager(context)
     }
     // 录制文件的切片时机检查器
-    private val spliceChecker by lazy {
+    private val spliceChecker: ISpliceChecker by lazy {
         FileSizeSpliceChecker(recordFileManager)
     }
 
@@ -110,8 +110,8 @@ class ScreenRecorder(
                 // 虚拟显示的名称
                 "ScreenRecorder-display0",
                 // 虚拟显示的宽度和高度
-                ScreenRecordService3.DISPLAY_WIDTH,
-                ScreenRecordService3.DISPLAY_HEIGHT,
+                SpliceScreenRecordService.DISPLAY_WIDTH,
+                SpliceScreenRecordService.DISPLAY_HEIGHT,
                 // 虚拟显示的DPI（像素密度）
                 360,
                 // 自动镜像标志

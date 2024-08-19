@@ -1,10 +1,11 @@
-package cn.luck.screenrecord.record2
+package cn.luck.screenrecord.record3
 
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import cn.luck.screenrecord.record3.recorder.SpliceScreenRecordService
 import cn.luck.screenrecord.utils.LogUtil
 
 /**
@@ -15,7 +16,7 @@ import cn.luck.screenrecord.utils.LogUtil
  * desc    录屏服务的管理
  * ============================================================
  **/
-class SpliceRecordManager {
+class ScreenRecordManager {
 
     var myService: SpliceScreenRecordService? = null
     var isBound = false
@@ -61,5 +62,9 @@ class SpliceRecordManager {
             context.unbindService(connection)
             isBound = false
         }
+    }
+
+    fun getRecorderFileDirPath(): String {
+        return myService?.getRecorderFileDirPath() ?: ""
     }
 }

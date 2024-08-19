@@ -1,13 +1,13 @@
-package cn.luck.screenrecord.record3
+package cn.luck.screenrecord.record3.splicechecker
 
 import cn.luck.screenrecord.record3.utils.HandlerTimer
-import cn.luck.screenrecord.record3.utils.RecordFileManager
+import cn.luck.screenrecord.record3.manager.RecordFileManager
 
-class FileSizeSpliceChecker(private val fileManager: RecordFileManager) {
+class FileSizeSpliceChecker(private val fileManager: RecordFileManager) : ISpliceChecker {
 
 
     private val timer by lazy { HandlerTimer() }
-    fun checkSplice(callback: (Boolean) -> Unit) {
+    override fun checkSplice(callback: (Boolean) -> Unit) {
         timer.startTimer {
             if (fileManager.moreThanFileSize()) {
                 callback.invoke(true)
@@ -17,7 +17,7 @@ class FileSizeSpliceChecker(private val fileManager: RecordFileManager) {
         }
     }
 
-    fun stopCheck() {
+    override fun stopCheck() {
         timer.stopTimer()
     }
 

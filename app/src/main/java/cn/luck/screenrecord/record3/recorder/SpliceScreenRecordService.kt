@@ -1,4 +1,4 @@
-package cn.luck.screenrecord.record3
+package cn.luck.screenrecord.record3.recorder
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -16,7 +16,6 @@ import androidx.core.app.NotificationCompat
 import cn.luck.screenrecord.R
 import cn.luck.screenrecord.record3.config.AudioConfig
 import cn.luck.screenrecord.record3.config.VideoConfig
-import cn.luck.screenrecord.record3.recorder.ScreenRecorder
 import cn.luck.screenrecord.utils.LogUtil
 import com.google.gson.Gson
 
@@ -29,7 +28,7 @@ import com.google.gson.Gson
  * desc    描述
  * ============================================================
  **/
-class ScreenRecordService3 : Service() {
+class SpliceScreenRecordService : Service() {
 
 
     companion object {
@@ -168,8 +167,8 @@ class ScreenRecordService3 : Service() {
 
 
     inner class ScreenRecordBinder : Binder() {
-        val recordService: ScreenRecordService3
-            get() = this@ScreenRecordService3
+        val recordService: SpliceScreenRecordService
+            get() = this@SpliceScreenRecordService
     }
 
 

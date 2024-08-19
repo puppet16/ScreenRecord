@@ -1,4 +1,4 @@
-package cn.luck.screenrecord.record3.utils
+package cn.luck.screenrecord.record3.manager
 
 import android.content.Context
 import cn.luck.screenrecord.utils.FileUtils
