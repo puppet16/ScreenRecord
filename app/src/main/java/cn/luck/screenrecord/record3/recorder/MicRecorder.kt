@@ -51,6 +51,9 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
 
 
 
+    private var lastInputTimestamp: Long = 0
+    private var lastOutputTimestamp: Long = 0
+
     // 设置编码回调接口
     override fun setCallback(callback: IRecorderEncoder.IRecorderEncoderCallback?) {
         this.callback = callback as? BaseRecorderEncoder.BaseRecorderEncoderCallback
@@ -93,7 +96,7 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
         encoder.setCallback(object : BaseRecorderEncoder.BaseRecorderEncoderCallback() {
             override fun onInputBufferAvailable(encoder: BaseRecorderEncoder?, index: Int) {
 //                // 当输入缓冲区可用时调用此方法
-//                feedAudioEncoder(index)
+                feedAudioEncoder(index)
             }
 
             override fun onOutputBufferAvailable(
@@ -102,7 +105,7 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
                 info: MediaCodec.BufferInfo
             ) {
 //                // 当输出缓冲区可用时调用此方法
-//                drainOutput(index, info)
+                drainOutput(index, info)
             }
 
             override fun onError(encoder: IRecorderEncoder?, exception: Throwable?) {
@@ -132,6 +135,12 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
             callback?.onOutputFormatChanged(encoder, encoder.getRecorderEncoder().outputFormat)
         } else if (index >= 0) {
             // 如果输出缓冲区可用，触发回调
+            val current = info.presentationTimeUs
+            if (current <= lastOutputTimestamp) {
+                LogUtil.e(TAG,"音频输出时过滤无序的帧 timestamp: $current, lastTimestamp=$lastOutputTimestamp")
+                return
+            }
+            lastOutputTimestamp = current
             callback?.onOutputBufferAvailable(encoder, index, info)
         } else {
             LogUtil.d(TAG, "没有可用缓冲区")
@@ -159,6 +168,12 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
 
         // 计算时间戳
         val pstTs = calculateFrameTimestamp(read * 8)
+
+        if (pstTs <= lastInputTimestamp) {
+            LogUtil.e(TAG,"音频输入时过滤无序的帧 timestamp: $pstTs, lastTimestamp=$lastInputTimestamp")
+            return
+        }
+        lastInputTimestamp = pstTs
         LogUtil.d(TAG, "录音写入缓冲区：index=$index, time=$pstTs")
         // 设置标志位
         val flags =
@@ -177,12 +192,12 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
 
     fun releaseOutputBuffer(index: Int) {
         LogUtil.d(TAG, "录音 releaseOutputBuffer() index=$index")
-        if (forceStop.get()) return
-        workManager.addWork({
+//        if (forceStop.get()) return
+//        workManager.addWork({
             if (!forceStop.get()) {
                 encoder.releaseOutputBuffer(index)
             }
-        })
+//        })
     }
 
     // 停止录音

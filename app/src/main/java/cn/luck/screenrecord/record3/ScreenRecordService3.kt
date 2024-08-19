@@ -4,31 +4,21 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.Point
-import android.hardware.display.DisplayManager
-import android.hardware.display.VirtualDisplay
-import android.media.MediaCodecInfo
 import android.media.MediaCodecInfo.CodecProfileLevel
 import android.media.MediaFormat.MIMETYPE_AUDIO_AAC
 import android.media.MediaFormat.MIMETYPE_VIDEO_AVC
-import android.media.projection.MediaProjection
-import android.media.projection.MediaProjectionManager
 import android.os.Binder
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import cn.luck.screenrecord.R
 import cn.luck.screenrecord.record3.config.AudioConfig
 import cn.luck.screenrecord.record3.config.VideoConfig
 import cn.luck.screenrecord.record3.recorder.ScreenRecorder
-import cn.luck.screenrecord.record3.utils.RecordFileManager
 import cn.luck.screenrecord.utils.LogUtil
 import com.google.gson.Gson
-import java.io.File
 
 
 /**
@@ -67,7 +57,9 @@ class ScreenRecordService3 : Service() {
     override fun onCreate() {
         super.onCreate()
         showNotification()
-
+        val videoConfig = createVideoConfig()
+        val audioConfig = createAudioConfig()
+        recorder = newRecorder(videoConfig, audioConfig)
     }
 
     fun startRecording(resultCode: Int, resultData: Intent, journeyId: String) {
@@ -79,16 +71,13 @@ class ScreenRecordService3 : Service() {
                 )
             }"
         )
-        val videoConfig = createVideoConfig()
-        val audioConfig = createAudioConfig()
-        recorder = newRecorder(videoConfig, audioConfig)
         recorder?.startRecord(resultCode, resultData)
     }
 
 
     private fun newRecorder(videoConfig: VideoConfig, audioConfig: AudioConfig): ScreenRecorder {
         val recorder = ScreenRecorder(baseContext, videoConfig, audioConfig)
-        recorder.setCallback(object : ScreenRecorder.Callback {
+        recorder.setRecorderCallback(object : ScreenRecorder.RecorderCallback {
             override fun onStop(error: Throwable?) {
                 LogUtil.i(TAG, "recorder error! error=${error?.printStackTrace()}")
             }

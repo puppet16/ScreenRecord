@@ -1,8 +1,15 @@
 package cn.luck.screenrecord.utils
 
+import android.media.MediaMetadataRetriever
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.DecimalFormat
+import kotlin.coroutines.Continuation
 import kotlin.math.log10
 import kotlin.math.pow
 
@@ -82,6 +89,44 @@ class FileUtils {
             }
         }
 
+        /**
+         * 后台打印媒体信息
+         */
+        fun printMediaInfo(filePath: String) {
+            val retriever = MediaMetadataRetriever()
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    retriever.setDataSource(filePath)
+                    val duration =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                    val width =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                    val height =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                    val mimeType =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
+                    val bitRate =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
+                    val rotation =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+                    val str = """
+                        filePath:${filePath}
+                        Media Info:
+                        Duration: ${duration?.toLongOrNull() ?: "Unknown"} ms
+                        Resolution: ${width ?: "Unknown"} x ${height ?: "Unknown"}
+                        MIME Type: $mimeType
+                        Bitrate: ${bitRate?.toLongOrNull() ?: "Unknown"} bps
+                        Rotation: $rotation degrees
+                """.trimIndent()
+                    LogUtil.d(TAG, "打印媒体信息：$str")
+                } catch (e: Exception) {
+                    LogUtil.d(TAG, "Failed to retrieve media info: ${e.message}")
+                } finally {
+                    retriever.release()
+                }
+            }
+        }
+
 
         /**
          * Delete directory
@@ -121,7 +166,6 @@ class FileUtils {
             // 删除空的文件夹
             return directory.delete()
         }
-
 
     }
 }

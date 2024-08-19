@@ -15,7 +15,7 @@ import java.io.File
  **/
 class RecordFileManager(context: Context) {
     private var RECORD_ROOT_DIR = ""
-    private var journeyId: String = ""
+    private var videoId: String = ""
 
     // 视频段的索引
     private var segmentIndex: Int = 0
@@ -34,12 +34,12 @@ class RecordFileManager(context: Context) {
         const val SEGMENT_MAX_SIZE_BYTES: Long = 512 * 1024 //2 * 1024 * 1024
     }
 
-    fun setJourneyId(journeyId: String) {
-        this.journeyId = journeyId
+    fun setVideoId(videoId: String) {
+        this.videoId = videoId
     }
 
     fun getRecorderFileDirPath(): String {
-        return "$RECORD_ROOT_DIR/$journeyId"
+        return "$RECORD_ROOT_DIR/$videoId"
     }
 
     fun getNextOutputFile(): File {
@@ -72,7 +72,7 @@ class RecordFileManager(context: Context) {
      */
     private fun getSegmentFilePath(): String {
         val index = String.format("%04d", segmentIndex)
-        return getRecorderFileDirPath() + "/${journeyId}_$index.mp4"
+        return getRecorderFileDirPath() + "/${videoId}_$index.mp4"
     }
 
     /**

@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
     private val REQUEST_CODE_SCREEN_RECORD = 1
     private val manager = ScreenRecordManager()
     private val TAG = "MainActivity"
+    private var dirPath: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -95,7 +96,7 @@ class MainActivity : ComponentActivity() {
                 if (recording.value) {
                     color.intValue = ColorUtils.generateRandomColor()
                 }
-                delay(1000)
+                delay(42)
             }
         }
 
@@ -168,8 +169,7 @@ class MainActivity : ComponentActivity() {
     private fun enterPlayerPage() {
         startActivity(
             Intent(this, ExoPlayerActivity::class.java).putExtra(
-                "dirPath",
-                manager.getRecorderFileDirPath()
+                "dirPath", dirPath
             )
         )
     }
@@ -187,6 +187,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun stopRecord() {
+        dirPath = manager.getRecorderFileDirPath()
         manager.stopRecording()
     }
 
@@ -209,6 +210,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
+        dirPath = manager.getRecorderFileDirPath()
         manager.onStop(this)
     }
 

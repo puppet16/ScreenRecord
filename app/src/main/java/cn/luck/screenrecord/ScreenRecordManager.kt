@@ -65,6 +65,6 @@ class ScreenRecordManager {
     }
 
     fun getRecorderFileDirPath(): String {
-       return myService?.getRecorderFileDirPath()?:""
+        return myService?.getRecorderFileDirPath() ?: ""
     }
 }

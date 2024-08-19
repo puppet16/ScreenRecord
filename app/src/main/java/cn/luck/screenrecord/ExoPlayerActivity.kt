@@ -111,6 +111,7 @@ class ExoPlayerActivity: ComponentActivity() {
         filePathList = FileUtils.getFileListByDirPath(dirPath)
         LogUtil.d("ExoPlayerActivity", "播放列表：$filePathList")
         val uris = filePathList.map {
+            FileUtils.printMediaInfo(it)
             Uri.parse(it)
         }
         val concatenatingMediaSource = ConcatenatingMediaSource()
