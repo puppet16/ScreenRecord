@@ -1,6 +1,6 @@
 package cn.luck.screenrecord.record3.recorder
 
-import MicRecorder
+import AudioRecorder
 import android.content.Context
 import android.content.Intent
 import android.graphics.Point
@@ -38,7 +38,7 @@ class ScreenRecorder(
     // 视频编码器
     private var videoEncoder: VideoRecorderEncoder? = null
     // 音频编码器
-    private var audioEncoder: MicRecorder? = null
+    private var audioEncoder: AudioRecorder? = null
     // 视频输出格式
     private var videoOutputFormat: MediaFormat? = null
     // 音频输出格式
@@ -281,7 +281,7 @@ class ScreenRecorder(
      */
     private fun prepareAudioEncoder() {
         // 使用音频配置初始化音频编码器
-        audioEncoder = audioConfig?.let { MicRecorder(it) }?.apply {
+        audioEncoder = audioConfig?.let { AudioRecorder(it) }?.apply {
             // 设置编码器的回调
             setCallback(object : BaseRecorderEncoder.BaseRecorderEncoderCallback() {
                 override fun onInputBufferAvailable(encoder: BaseRecorderEncoder?, index: Int) {

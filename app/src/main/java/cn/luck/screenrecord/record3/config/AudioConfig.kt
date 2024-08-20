@@ -1,6 +1,7 @@
 package cn.luck.screenrecord.record3.config
 
 import android.media.MediaFormat
+import android.media.MediaRecorder
 import com.google.gson.Gson
 
 /**
@@ -17,8 +18,16 @@ class AudioConfig private constructor(
     val bitRate: Int,
     val sampleRate: Int,
     val channelCount: Int,
-    val profile: Int
+    val profile: Int,
+    val audioResource: Int
 ) {
+
+    companion object {
+
+        private const val AUDIO_BIT_RATE = 96000 // 音频比特率
+        private const val AUDIO_SAMPLE_RATE = 44100 // 音频采样率
+    }
+
 
     class Builder {
         private var codecName: String = ""
@@ -27,6 +36,7 @@ class AudioConfig private constructor(
         private var sampleRate: Int = 0
         private var channelCount: Int = 0
         private var profile: Int = 0
+        private var audioResource: Int = MediaRecorder.AudioSource.DEFAULT
 
         fun setCodecName(codecName: String) = apply { this.codecName = codecName }
         fun setMimeType(mimeType: String) = apply { this.mimeType = mimeType }
@@ -35,7 +45,11 @@ class AudioConfig private constructor(
         fun setChannelCount(channelCount: Int) = apply { this.channelCount = channelCount }
         fun setProfile(profile: Int) = apply { this.profile = profile }
 
-        fun build() = AudioConfig(codecName, mimeType, bitRate, sampleRate, channelCount, profile)
+        fun setAudioResource(audioResource: Int) = apply {
+            this.audioResource = audioResource
+        }
+
+        fun build() = AudioConfig(codecName, mimeType, bitRate, sampleRate, channelCount, profile, audioResource)
     }
 
     fun toFormat(): MediaFormat {

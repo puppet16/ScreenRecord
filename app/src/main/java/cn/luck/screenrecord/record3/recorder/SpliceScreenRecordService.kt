@@ -9,6 +9,7 @@ import android.content.ServiceConnection
 import android.media.MediaCodecInfo.CodecProfileLevel
 import android.media.MediaFormat.MIMETYPE_AUDIO_AAC
 import android.media.MediaFormat.MIMETYPE_VIDEO_AVC
+import android.media.MediaRecorder
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -101,6 +102,7 @@ class SpliceScreenRecordService : Service() {
             .setChannelCount(1)
             .setSampleRate(AUDIO_SAMPLE_RATE)
             .setProfile(CodecProfileLevel.AACObjectMain)
+            .setAudioResource(MediaRecorder.AudioSource.MIC)
             .build()
 
     }

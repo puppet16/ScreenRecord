@@ -19,8 +19,8 @@ import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 
 
-// MicRecorder 类实现了 IRecorderEncoder 接口，用于录制音频数据并进行编码
-class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
+// AudioRecorder 类实现了 IRecorderEncoder 接口，用于录制音频数据并进行编码
+class AudioRecorder(private val config: AudioConfig) : IRecorderEncoder {
     // 日志标签
     private val TAG = "MicRecorder"
 
@@ -29,7 +29,7 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
     private val encoder: AudioRecorderEncoder = AudioRecorderEncoder(config)
 
     // 用于音频录制的 AudioRecord 实例，协程中使用
-    private var mic: AudioRecord? = null
+    private var audioOriginRecorder: AudioRecord? = null
 
     // 原子布尔变量，用于标识是否强制停止录音
     private val forceStop = AtomicBoolean(false)
@@ -71,7 +71,7 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
 
             override fun onError(exception: Throwable) {
                 // 准备失败时触发回调
-                callback?.onError(this@MicRecorder, exception)
+                callback?.onError(this@AudioRecorder, exception)
             }
         })
     }
@@ -79,12 +79,12 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
     // 内部的录音准备方法，使用协程执行
     private suspend fun prepareInternal() {
         // 创建 AudioRecord 实例并开始录音
-        mic = createAudioRecord(
+        audioOriginRecorder = createAudioRecord(
             config.sampleRate,
             config.channelCount,
             AudioFormat.ENCODING_PCM_16BIT
         )
-        mic?.startRecording() ?: throw IOException("Failed to start recording")
+        audioOriginRecorder?.startRecording() ?: throw IOException("Failed to start recording")
 
         startAsyncEncoding()
         // 准备编码器
@@ -151,7 +151,7 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
     private fun feedAudioEncoder(index: Int) {
         // 如果索引无效或已强制停止，则不执行任何操作
         if (index < 0 || forceStop.get()) return
-        val r = mic ?: return
+        val r = audioOriginRecorder ?: return
         // 判断是否结束录音
         val eos = r.recordingState == AudioRecord.RECORDSTATE_STOPPED
         val frame = encoder.getInputBuffer(index)
@@ -207,7 +207,7 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
         forceStop.set(true)
         // 使用 WorkManager 异步执行停止录音和编码的任务
         workManager.addWork({
-            mic?.stop()  // 停止录音
+            audioOriginRecorder?.stop()  // 停止录音
             encoder.stop()  // 停止编码
         }, object : WorkManager.WorkCallback<Unit> {
             override fun onSuccess(data: Unit) {
@@ -217,7 +217,7 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
 
             override fun onError(exception: Throwable) {
                 // 停止过程中出错时触发回调
-                callback?.onError(this@MicRecorder, exception)
+                callback?.onError(this@AudioRecorder, exception)
             }
         })
     }
@@ -227,8 +227,8 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
         LogUtil.d(TAG, "录音 release()")
         // 使用 WorkManager 异步执行资源释放任务
         workManager.addWork({
-            mic?.release()  // 释放 AudioRecord 资源
-            mic = null
+            audioOriginRecorder?.release()  // 释放 AudioRecord 资源
+            audioOriginRecorder = null
             encoder.release()  // 释放编码器资源
         }, object : WorkManager.WorkCallback<Unit> {
             override fun onSuccess(data: Unit) {
@@ -237,7 +237,7 @@ class MicRecorder(private val config: AudioConfig) : IRecorderEncoder {
 
             override fun onError(exception: Throwable) {
                 // 释放资源过程中出错时触发回调
-                callback?.onError(this@MicRecorder, exception)
+                callback?.onError(this@AudioRecorder, exception)
             }
         })
         workManager.release()  // 释放工作管理器资源

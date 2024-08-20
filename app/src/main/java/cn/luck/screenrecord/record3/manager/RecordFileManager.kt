@@ -31,7 +31,7 @@ class RecordFileManager(context: Context) {
         private const val TAG = "RecordFileManager"
 
         // 每段视频的最大文件大小，单位为字节
-        const val SEGMENT_MAX_SIZE_BYTES: Long = 512 * 1024 //2 * 1024 * 1024
+        const val SEGMENT_MAX_SIZE_BYTES: Long = 2 * 1024 * 1024
     }
 
     fun setVideoId(videoId: String) {

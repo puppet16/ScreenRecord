@@ -23,6 +23,18 @@ class VideoConfig private constructor(
     val codecProfileLevel: CodecProfileLevel?
 ) {
 
+    companion object {
+        private const val VIDEO_BIT_RATE = 6000000 // 视频比特率
+        private const val VIDEO_FRAME_RATE = 30 // 视频帧率
+
+        const val DISPLAY_WIDTH = 1920 // 显示宽度
+        const val DISPLAY_HEIGHT = 1080 // 显示高度
+
+        const val VIDEO_AVC = MediaFormat.MIMETYPE_VIDEO_AVC // H.264 Advanced Video Coding
+        const val AUDIO_AAC = MediaFormat.MIMETYPE_AUDIO_AAC // H.264 Advanced Audio Coding
+
+    }
+
 
 
     class Builder {
